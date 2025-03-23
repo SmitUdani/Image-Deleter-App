@@ -3,14 +3,10 @@ package com.example.temp
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.media.Image
-import android.net.Uri
 import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +21,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -37,18 +32,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import coil3.compose.AsyncImage
 import com.spartapps.swipeablecards.state.SwipeableCardsState
 import com.spartapps.swipeablecards.state.rememberSwipeableCardsState
 import com.spartapps.swipeablecards.ui.SwipeableCardDirection
-import com.spartapps.swipeablecards.ui.SwipeableCardsProperties
 import com.spartapps.swipeablecards.ui.lazy.LazySwipeableCards
 import com.spartapps.swipeablecards.ui.lazy.items
 import kotlinx.coroutines.Dispatchers
@@ -87,7 +79,7 @@ fun HomeScreen() {
 
     if(!permissionGranted){
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(Color.Black),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -115,6 +107,12 @@ fun HomeScreen() {
 
 }
 
+@Preview(showSystemUi = true)
+@Composable
+fun CardStackPrev() {
+    CardStack()
+}
+
 
 @Composable
 fun CardStack() {
@@ -124,19 +122,17 @@ fun CardStack() {
 
     LaunchedEffect(Unit) {
 
-//        println("Images are fetching")
-
         val fetchedImages = withContext(Dispatchers.IO) {
             fetchImages(context)
         }
 
         images = fetchedImages
-
-//        println("fetching completed")
     }
 
     Column(
-        modifier = Modifier.padding(10.dp)
+        modifier = Modifier
+            .background(Color.Black)
+            .padding(10.dp)
             .fillMaxSize()
     ) {
 
@@ -149,13 +145,7 @@ fun CardStack() {
             properties = swipeCardProperties
         ) {
             items(images) { profile, _, _ ->
-                Card {
-                    AsyncImage(
-                        model = profile.uri,
-                        contentScale = ContentScale.Crop,
-                        contentDescription = null
-                    )
-                }
+               ImageCard(profile)
             }
         }
 
