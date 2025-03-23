@@ -3,6 +3,7 @@ package com.example.temp
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
@@ -34,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,31 +58,59 @@ import kotlinx.coroutines.withContext
 fun HomeScreen() {
 
     val context = LocalContext.current
-
-    var hasPermission by remember {
-        mutableStateOf(
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-            } else true
-        )
-    }
-
-
+    var permissionGranted by remember { mutableStateOf(false) }
+    var showPermissionButton by remember { mutableStateOf(true)  }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted -> hasPermission = isGranted }
-    )
-
-    if(!hasPermission) {
-        LaunchedEffect(Unit) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasPermission) {
-                permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+        onResult = { isGranted ->
+            if(isGranted) {
+                permissionGranted = true
+                showPermissionButton = false
+            } else {
+                permissionGranted = false
+                showPermissionButton = true
             }
         }
+    )
+
+    val permissionToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-    else CardStack()
+    permissionGranted = ContextCompat.checkSelfPermission(
+        context,
+        permissionToRequest
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if(!permissionGranted){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if(showPermissionButton) {
+            Button(
+                onClick = {
+                    if(ContextCompat.checkSelfPermission(
+                        context,
+                        permissionToRequest
+                    ) == PackageManager.PERMISSION_GRANTED) {
+                        permissionGranted = true
+                        showPermissionButton = false
+                    } else {
+                        permissionLauncher.launch(permissionToRequest)
+                    }
+                }
+            ){
+                Text("Grant Permission")
+            }
+        }
+    } }
+
+    else { CardStack() }
 
 
 }
@@ -88,24 +118,21 @@ fun HomeScreen() {
 
 @Composable
 fun CardStack() {
-    var imageUris by remember { mutableStateOf( listOf<Uri>() ) }
+    var images by remember { mutableStateOf( listOf<ImageData>() ) }
     val context = LocalContext.current
-    var loading by remember { mutableStateOf(false)}
-    val state = rememberSwipeableCardsState(itemCount = { imageUris.size })
+    val state = rememberSwipeableCardsState(itemCount = { images.size })
 
     LaunchedEffect(Unit) {
-        loading = true
 
-        println("Images are fetching")
+//        println("Images are fetching")
 
         val fetchedImages = withContext(Dispatchers.IO) {
             fetchImages(context)
         }
 
-        imageUris = fetchedImages
-        loading = false
+        images = fetchedImages
 
-        println("fetching completed")
+//        println("fetching completed")
     }
 
     Column(
@@ -115,31 +142,18 @@ fun CardStack() {
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        LazySwipeableCards(
+        LazySwipeableCards<ImageData>(
             modifier = Modifier.fillMaxWidth().height(700.dp),
             state = state,
-            onSwipe = { profile, direction ->
-                when (direction) {
-                    SwipeableCardDirection.Right -> {
-//                        Toast.makeText(context, "Kept", Toast.LENGTH_SHORT).show()
-                    }
-
-                    SwipeableCardDirection.Left -> {
-//                        Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            },
-            properties = SwipeableCardsProperties(
-                stackedCardsOffset = 0.dp,
-                swipeThreshold = 30.dp
-            )
+            onSwipe = handleSwipe,
+            properties = swipeCardProperties
         ) {
-            items(imageUris) { profile, index, offset ->
+            items(images) { profile, _, _ ->
                 Card {
                     AsyncImage(
-                        model = profile,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
+                        model = profile.uri,
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null
                     )
                 }
             }
@@ -148,9 +162,9 @@ fun CardStack() {
         Spacer(modifier = Modifier.height(50.dp))
 
         ActionButtonRow(state, context)
-
     }
 }
+
 
 @Composable
 fun ActionButtonRow(state: SwipeableCardsState, context: Context) {
