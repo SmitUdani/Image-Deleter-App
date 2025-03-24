@@ -4,8 +4,11 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,9 +30,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,11 +48,13 @@ import com.spartapps.swipeablecards.state.rememberSwipeableCardsState
 import com.spartapps.swipeablecards.ui.SwipeableCardDirection
 import com.spartapps.swipeablecards.ui.lazy.LazySwipeableCards
 import com.spartapps.swipeablecards.ui.lazy.items
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(activity: MainActivity) {
 
     val context = LocalContext.current
     var permissionGranted by remember { mutableStateOf(false) }
@@ -77,7 +84,7 @@ fun HomeScreen() {
         permissionToRequest
     ) == PackageManager.PERMISSION_GRANTED
 
-    if(!permissionGranted){
+    if(!permissionGranted) {
     Column(
         modifier = Modifier.fillMaxSize().background(Color.Black),
         verticalArrangement = Arrangement.Center,
@@ -102,32 +109,31 @@ fun HomeScreen() {
         }
     } }
 
-    else { CardStack() }
+    else { CardStack(activity) }
 
 
 }
 
-@Preview(showSystemUi = true)
-@Composable
-fun CardStackPrev() {
-    CardStack()
-}
+//@Preview(showSystemUi = true)
+//@Composable
+//fun CardStackPrev() {
+//    CardStack()
+//}
 
 
 @Composable
-fun CardStack() {
+fun CardStack(activity: MainActivity) {
     var images by remember { mutableStateOf( listOf<ImageData>() ) }
     val context = LocalContext.current
     val state = rememberSwipeableCardsState(itemCount = { images.size })
 
     LaunchedEffect(Unit) {
-
-        val fetchedImages = withContext(Dispatchers.IO) {
-            fetchImages(context)
-        }
-
-        images = fetchedImages
+        images = fetchImages(context)
     }
+
+    val directions = remember { mutableStateListOf<String>() }
+    val toDelete = remember { mutableStateListOf<ImageData>() }
+    val toKeep = remember { mutableStateListOf<ImageData>() }
 
     Column(
         modifier = Modifier
@@ -141,7 +147,23 @@ fun CardStack() {
         LazySwipeableCards<ImageData>(
             modifier = Modifier.fillMaxWidth().height(700.dp),
             state = state,
-            onSwipe = handleSwipe,
+            onSwipe = { image, direction ->
+                when (direction) {
+                    SwipeableCardDirection.Right -> {
+                        directions.add("right")
+                        toKeep.add(image)
+                    }
+
+                    SwipeableCardDirection.Left -> {
+                        directions.add("left")
+                        toDelete.add(image)
+                    }
+                }
+
+//                val temp = Log.d("onSwipe", "$directions $toDelete $toKeep")
+
+            },
+
             properties = swipeCardProperties
         ) {
             items(images) { profile, _, _ ->
@@ -151,32 +173,35 @@ fun CardStack() {
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        ActionButtonRow(state, context)
+        ActionButtonRow {
+            if(state.canSwipeBack) {
+                state.goBack()
+                val lastDirection = directions.removeAt(directions.lastIndex)
+                if(lastDirection == "left")
+                    toDelete.removeAt(toDelete.lastIndex)
+                else toKeep.removeAt(toKeep.lastIndex)
+                Log.d("onSwipe", "$directions $toDelete $toKeep")
+            }
+        }
+
+        if(images.isNotEmpty() && state.currentCardIndex == images.size) {
+            CoroutineScope(Dispatchers.IO).launch {
+                deleteImages( activity, toDelete.map { image -> image.uri } )
+            }
+        }
     }
 }
 
 
 @Composable
-fun ActionButtonRow(state: SwipeableCardsState, context: Context) {
+fun ActionButtonRow(onClick: () -> Unit) {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceAround
     ) {
 
-        ActionButton(Icons.Default.Close) {
-            state.swipe(SwipeableCardDirection.Left)
-//            Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show()
-        }
-
-        ActionButton(Icons.Default.Refresh) {
-            state.goBack()
-        }
-
-        ActionButton(Icons.Default.Check) {
-            state.swipe(SwipeableCardDirection.Right)
-//            Toast.makeText(context, "Kept", Toast.LENGTH_SHORT).show()
-        }
+        ActionButton(Icons.Default.Refresh, onClick)
 
     }
 
