@@ -109,87 +109,9 @@ fun HomeScreen(activity: MainActivity) {
         }
     } }
 
-    else { CardStack(activity) }
+    else { StateFullStack(activity) }
 
 
-}
-
-//@Preview(showSystemUi = true)
-//@Composable
-//fun CardStackPrev() {
-//    CardStack()
-//}
-
-
-@Composable
-fun CardStack(activity: MainActivity) {
-    var images by remember { mutableStateOf( listOf<ImageData>() ) }
-    val context = LocalContext.current
-    val state = rememberSwipeableCardsState(itemCount = { images.size })
-
-    LaunchedEffect(Unit) {
-        images = fetchImages(context)
-    }
-
-    val directions = remember { mutableStateListOf<String>() }
-    val toDelete = remember { mutableStateListOf<ImageData>() }
-    val toKeep = remember { mutableStateListOf<ImageData>() }
-
-    Column(
-        modifier = Modifier
-            .background(Color.Black)
-            .padding(10.dp)
-            .fillMaxSize()
-    ) {
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        LazySwipeableCards<ImageData>(
-            modifier = Modifier.fillMaxWidth().height(700.dp),
-            state = state,
-            onSwipe = { image, direction ->
-                when (direction) {
-                    SwipeableCardDirection.Right -> {
-                        directions.add("right")
-                        toKeep.add(image)
-                    }
-
-                    SwipeableCardDirection.Left -> {
-                        directions.add("left")
-                        toDelete.add(image)
-                    }
-                }
-
-//                val temp = Log.d("onSwipe", "$directions $toDelete $toKeep")
-
-            },
-
-            properties = swipeCardProperties
-        ) {
-            items(images) { profile, _, _ ->
-               ImageCard(profile)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(50.dp))
-
-        ActionButtonRow {
-            if(state.canSwipeBack) {
-                state.goBack()
-                val lastDirection = directions.removeAt(directions.lastIndex)
-                if(lastDirection == "left")
-                    toDelete.removeAt(toDelete.lastIndex)
-                else toKeep.removeAt(toKeep.lastIndex)
-                Log.d("onSwipe", "$directions $toDelete $toKeep")
-            }
-        }
-
-        if(images.isNotEmpty() && state.currentCardIndex == images.size) {
-            CoroutineScope(Dispatchers.IO).launch {
-                deleteImages( activity, toDelete.map { image -> image.uri } )
-            }
-        }
-    }
 }
 
 
