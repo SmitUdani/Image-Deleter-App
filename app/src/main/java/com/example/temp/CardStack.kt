@@ -2,6 +2,7 @@ package com.example.temp
 
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -89,10 +90,12 @@ fun StateLessStack(
         modifier = Modifier
             .background(Color.Black)
             .padding(10.dp)
-            .fillMaxSize()
+            .fillMaxSize(),
+
+        verticalArrangement = Arrangement.Center
     ) {
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(35.dp))
 
         LazySwipeableCards<ImageData>(
             modifier = Modifier.fillMaxWidth().height(reqHeight),
