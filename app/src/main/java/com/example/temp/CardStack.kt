@@ -52,6 +52,22 @@ fun StateFullStack(activity: MainActivity) {
         toDelete.add(image)
     }
 
+    val swipeRightButtonHandler = {
+        if(state.currentCardIndex != images.size) {
+            state.swipe(SwipeableCardDirection.Right)
+            directions.add("right")
+            toKeep.add(images[state.currentCardIndex])
+        }
+    }
+
+    val swipeLeftButtonHandler = {
+        if(state.currentCardIndex != images.size) {
+            state.swipe(SwipeableCardDirection.Left)
+            directions.add("left")
+            toDelete.add(images[state.currentCardIndex])
+        }
+    }
+
     val goBackHandler = {
         if(state.canSwipeBack) {
             state.goBack()
@@ -67,6 +83,7 @@ fun StateFullStack(activity: MainActivity) {
     StateLessStack(
         activity, images, state,
         swipeRightHandler, swipeLeftHandler,
+        swipeRightButtonHandler, swipeLeftButtonHandler,
         goBackHandler, deleteUriList
     )
 
@@ -79,6 +96,8 @@ fun StateLessStack(
     state: SwipeableCardsState,
     swipeRightHandler: (ImageData) -> Boolean,
     swipeLeftHandler: (ImageData) -> Boolean,
+    swipeRightButtonHandler: () -> Unit,
+    swipeLeftButtonHandler: () -> Unit,
     goBackHandler: () -> Unit,
     deleteUriList: () -> List<Uri>
 ) {
@@ -115,7 +134,11 @@ fun StateLessStack(
 
         Spacer(modifier = Modifier.height(50.dp))
 
-        ActionButtonRow(goBackHandler)
+        ActionButtonRow(
+            swipeRightButtonHandler,
+            swipeLeftButtonHandler,
+            goBackHandler
+        )
     }
 
     if(images.isNotEmpty() && state.currentCardIndex == images.size) {
