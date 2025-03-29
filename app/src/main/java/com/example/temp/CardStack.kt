@@ -29,7 +29,7 @@ import com.spartapps.swipeablecards.ui.lazy.items
 
 
 @Composable
-fun StateFullStack(activity: MainActivity) {
+fun StateFullStack() {
     var images by remember { mutableStateOf( listOf<ImageData>() ) }
     val context = LocalContext.current
     val state = rememberSwipeableCardsState(itemCount = { images.size })
@@ -53,7 +53,7 @@ fun StateFullStack(activity: MainActivity) {
     }
 
     val swipeRightButtonHandler = {
-        if(state.currentCardIndex != images.size) {
+        if(images.isNotEmpty() && state.currentCardIndex != images.size) {
             state.swipe(SwipeableCardDirection.Right)
             directions.add("right")
             toKeep.add(images[state.currentCardIndex])
@@ -61,7 +61,7 @@ fun StateFullStack(activity: MainActivity) {
     }
 
     val swipeLeftButtonHandler = {
-        if(state.currentCardIndex != images.size) {
+        if(images.isNotEmpty() && state.currentCardIndex != images.size) {
             state.swipe(SwipeableCardDirection.Left)
             directions.add("left")
             toDelete.add(images[state.currentCardIndex])
@@ -81,7 +81,7 @@ fun StateFullStack(activity: MainActivity) {
     val deleteUriList = { toDelete.map { image -> image.uri }}
 
     StateLessStack(
-        activity, images, state,
+        images, state,
         swipeRightHandler, swipeLeftHandler,
         swipeRightButtonHandler, swipeLeftButtonHandler,
         goBackHandler, deleteUriList
@@ -91,7 +91,6 @@ fun StateFullStack(activity: MainActivity) {
 
 @Composable
 fun StateLessStack(
-    activity: MainActivity,
     images: List<ImageData>,
     state: SwipeableCardsState,
     swipeRightHandler: (ImageData) -> Boolean,
@@ -142,6 +141,6 @@ fun StateLessStack(
     }
 
     if(images.isNotEmpty() && state.currentCardIndex == images.size) {
-        DeleteLauncher(activity, deleteUriList())
+        DeleteFiles(deleteUriList())
     }
 }

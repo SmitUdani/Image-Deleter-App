@@ -59,4 +59,5 @@ dependencies {
 
     implementation(libs.compose.swipeable.cards)
     implementation(libs.coil.compose)
+    implementation(libs.lottie.compose)
 }

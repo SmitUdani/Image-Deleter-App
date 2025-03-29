@@ -1,18 +1,15 @@
 package com.example.temp
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.Context
 import android.icu.util.Calendar
-import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.unit.dp
-import com.spartapps.swipeablecards.ui.SwipeableCardDirection
 import com.spartapps.swipeablecards.ui.SwipeableCardsProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -62,8 +59,6 @@ suspend fun fetchImages(context: Context) =
                 val monthYearFormater = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
                 val monthYear = monthYearFormater.format(calender.time)
 
-//            println("$monthYear -> $contentUri")
-
                 images.add(ImageData(id, monthYear, contentUri))
 
                 if(images.size > 50) break
@@ -98,7 +93,8 @@ fun deleteMediaR(activity: Activity, uris: List<Uri>) {
     val contentResolver = activity.contentResolver
     val pendingIntent = MediaStore.createDeleteRequest(contentResolver, uris)
     activity.startIntentSenderForResult(
-        pendingIntent.intentSender, 42, null, 0, 0, 0, null)
+        pendingIntent.intentSender, 42, null, 0, 0, 0, null
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.Q)
