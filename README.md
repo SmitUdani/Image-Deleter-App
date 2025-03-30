@@ -1,2 +1,2 @@
-# Image-Deleter-App
-Delete Images with Swipe
+# Image Manager App
+Delete Images with Left Swipe and keep it with Right Swipe
