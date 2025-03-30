@@ -28,7 +28,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun StateFullPermissionLauncher(activity: MainActivity) {
+fun StateFullPermissionLauncher() {
 
     val context = LocalContext.current
     var permissionGranted by remember { mutableStateOf(false) }
