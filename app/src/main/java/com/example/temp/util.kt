@@ -2,6 +2,7 @@ package com.example.temp
 
 import android.app.Activity
 import android.app.RecoverableSecurityException
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.icu.util.Calendar
@@ -72,45 +73,7 @@ val swipeCardProperties = SwipeableCardsProperties(
     swipeThreshold = 30.dp
 )
 
-fun deleteImages(activity: MainActivity, uris: List<Uri>) {
-    when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-            deleteMediaR(activity, uris)
-        }
-
-        Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
-            deleteMediaQ(activity, uris)
-        }
-
-        else -> {
-            deleteMediaDefault(activity, uris)
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.R)
-fun deleteMediaR(activity: Activity, uris: List<Uri>) {
-    val contentResolver = activity.contentResolver
-    val pendingIntent = MediaStore.createDeleteRequest(contentResolver, uris)
-    activity.startIntentSenderForResult(
-        pendingIntent.intentSender, 42, null, 0, 0, 0, null
-    )
-}
-
-@RequiresApi(Build.VERSION_CODES.Q)
-fun deleteMediaQ(activity: Activity, uris: List<Uri>) {
-    try {
-        deleteMediaDefault(activity, uris)
-    } catch (exception: Exception) {
-        if (exception is RecoverableSecurityException) {
-            val pendingIntent= exception.userAction.actionIntent
-            activity.startIntentSenderForResult(pendingIntent.intentSender,
-                42, null, 0, 0, 0, null)
-        }
-    }
-}
-
-fun deleteMediaDefault(activity: Activity, uris: List<Uri>) {
+fun deleteMediaDefault(contentResolver: ContentResolver, uris: List<Uri>) {
     for(uri in uris)
-        activity.contentResolver.delete(uri, null, null)
+        contentResolver.delete(uri, null, null)
 }

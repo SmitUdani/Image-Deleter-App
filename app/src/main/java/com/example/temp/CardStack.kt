@@ -38,7 +38,7 @@ fun StateFullStack() {
         images = fetchImages(context)
     }
 
-    val directions = remember { mutableStateListOf<String>() }
+    val directions = remember { mutableStateListOf<String>("") }
     val toDelete = remember { mutableStateListOf<ImageData>() }
     val toKeep = remember { mutableStateListOf<ImageData>() }
 
@@ -54,21 +54,25 @@ fun StateFullStack() {
 
     val swipeRightButtonHandler = {
         if(images.isNotEmpty() && state.currentCardIndex != images.size) {
+//            println("${state.currentCardIndex}")
+            toKeep.add(images[state.currentCardIndex])
             state.swipe(SwipeableCardDirection.Right)
             directions.add("right")
-            toKeep.add(images[state.currentCardIndex])
         }
     }
 
     val swipeLeftButtonHandler = {
         if(images.isNotEmpty() && state.currentCardIndex != images.size) {
+//            println("${state.currentCardIndex}")
+            toDelete.add(images[state.currentCardIndex])
             state.swipe(SwipeableCardDirection.Left)
             directions.add("left")
-            toDelete.add(images[state.currentCardIndex])
+
+
         }
     }
 
-    val goBackHandler = {
+    val goBackButtonHandler = {
         if(state.canSwipeBack) {
             state.goBack()
             val lastDirection = directions.removeAt(directions.lastIndex)
@@ -84,7 +88,7 @@ fun StateFullStack() {
         images, state,
         swipeRightHandler, swipeLeftHandler,
         swipeRightButtonHandler, swipeLeftButtonHandler,
-        goBackHandler, deleteUriList
+        goBackButtonHandler, deleteUriList
     )
 
 }
@@ -97,7 +101,7 @@ fun StateLessStack(
     swipeLeftHandler: (ImageData) -> Boolean,
     swipeRightButtonHandler: () -> Unit,
     swipeLeftButtonHandler: () -> Unit,
-    goBackHandler: () -> Unit,
+    goBackButtonHandler: () -> Unit,
     deleteUriList: () -> List<Uri>
 ) {
     val configuration = LocalConfiguration.current
@@ -136,11 +140,15 @@ fun StateLessStack(
         ActionButtonRow(
             swipeRightButtonHandler,
             swipeLeftButtonHandler,
-            goBackHandler
+            goBackButtonHandler
         )
     }
 
     if(images.isNotEmpty() && state.currentCardIndex == images.size) {
-        DeleteFiles(deleteUriList())
+        println("from delete ${state.currentCardIndex}")
+        val imagesUri = deleteUriList()
+        if(imagesUri.isNotEmpty())
+            DeleteFiles(imagesUri)
+        else SuccessAnimation()
     }
 }

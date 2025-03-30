@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 fun ActionButtonRow(
     swipeRightButtonHandler: () -> Unit,
     swipeLeftButtonHandler: () -> Unit,
-    goBackHandler: () -> Unit
+    goBackButtonHandler: () -> Unit
 ) {
 
     Row(
@@ -30,7 +30,7 @@ fun ActionButtonRow(
 
         ActionButton(Icons.Default.Close, swipeLeftButtonHandler)
 
-        ActionButton(Icons.Default.Refresh, goBackHandler)
+        ActionButton(Icons.Default.Refresh, goBackButtonHandler)
 
         ActionButton(Icons.Default.Check, swipeRightButtonHandler)
 

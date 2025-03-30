@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -18,10 +19,9 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun FinalMessage() {
-
+fun SuccessAnimation() {
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.two)
+        LottieCompositionSpec.RawRes(R.raw.success)
     )
 
     val progress by animateLottieCompositionAsState(
@@ -29,7 +29,6 @@ fun FinalMessage() {
         composition = composition,
         iterations = LottieConstants.IterateForever,
         reverseOnRepeat = true,
-        speed = 1.25f
     )
 
     Column(
@@ -43,9 +42,12 @@ fun FinalMessage() {
             clipToCompositionBounds = false
         )
 
-        Text("Now you can exit the app",
-            color = Color.White,
-            fontSize = 27.sp)
+        Text("Images Successfully Deleted", color = Color.White, fontSize = 23.sp)
     }
+}
 
+@Preview(showSystemUi = true)
+@Composable
+fun SuccessPreview() {
+    SuccessAnimation()
 }
